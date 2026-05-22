@@ -1,0 +1,14 @@
+# ===================================================================
+# Spring Boot configuration for the "dev" profile (K8s / dev cluster).
+# Overrides base: enables debug logging, exposes all actuator endpoints.
+# ===================================================================
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  level:
+    com.iqkv: DEBUG

@@ -1,0 +1,18 @@
+# ===================================================================
+# Spring Boot configuration for the "production" profile.
+# Overrides base: hardens actuator/swagger, enables graceful shutdown.
+# ===================================================================
+
+server:
+  shutdown: graceful
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+management:
+  endpoint:
+    health:
+      show-details: never

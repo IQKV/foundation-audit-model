@@ -1,0 +1,22 @@
+# ===================================================================
+# Spring Boot configuration for tests.
+# ===================================================================
+
+spring:
+  application:
+    name: servicename
+
+logging:
+  level:
+    com.iqkv: DEBUG
+
+git:
+  build_time: "@git.build.time@"
+  commit: "@git.commit.id.abbrev@"
+info:
+  app:
+    build_time: ${git.build_time}
+    description: "@project.description@"
+    git_commit: ${git.commit}
+    name: "@project.name@"
+    version: "@project.version@"
