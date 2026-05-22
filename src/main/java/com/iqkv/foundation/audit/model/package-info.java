@@ -29,12 +29,8 @@
  *
  * <h2>Package Structure</h2>
  * <ul>
- *   <li>{@code event/} — Domain events published via message broker (RabbitMQ)</li>
- *   <li>{@code record/} — Immutable records representing persisted audit entries</li>
- *   <li>{@code enum/} — Controlled vocabulary ({@link ActivityAction}, {@link EntityType}, etc.)</li>
- *   <li>{@code dto/} — Data Transfer Objects for API communication</li>
- *   <li>{@code actor/} — Types representing who performed an action</li>
- *   <li>{@code context/} — Contextual information (tenant, IP, correlation ID, etc.)</li>
+ *   <li>{@code event/} — Normalized audit events and actor records</li>
+ *   <li>{@code enums/} — Controlled vocabulary (ActivitySeverity, ActivityAction, EntityType)</li>
  * </ul>
  *
  * <p>All classes in this module are intentionally lightweight and serializable
