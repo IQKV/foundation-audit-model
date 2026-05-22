@@ -50,19 +50,10 @@ Add a detailed introduction about the project here, everything you want the read
 - [ ] Development prerequisites and environment documented
 - [ ] Architecture notes reflect your stack and modules
 - [ ] Links verified (Getting Started, docs, external resources)
-- [ ] Guidance blocks, template-docs folder, are removed before publishing
 
 </details>
 
 ---
-
-## 📚 Template Usage
-
-- [Project Overview](./template-docs/01-project-overview.md)
-- [Getting Started Guide](./template-docs/02-getting-started.md)
-- [Architecture Overview](./template-docs/03-architecture-overview.md)
-- [Development Workflow](./template-docs/04-development-workflow.md)
-- [Testing Guide](./template-docs/05-testing-guide.md)
 
 ## 🧩 Boilerplate Architecture
 
