@@ -142,10 +142,11 @@ jobs:
       # Step 9: Deploy to OSSRH (Maven Central)
       # Uses the 'maven-central' profile which includes sources, javadoc, and GPG signing
       - name: "Deploy to OSSRH"
-        run: mvn clean deploy -P maven-central
+        run: mvn clean deploy -P maven-central -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
         env:
           # OSSRH credentials from GitHub secrets
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           # GPG signing passphrase from GitHub secrets
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
