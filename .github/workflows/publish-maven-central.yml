@@ -1,0 +1,151 @@
+name: "Publish to Maven Central"
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish:
+    name: "Publish to Maven Central"
+    runs-on: ubuntu-latest
+    # CRITICAL SECURITY CHECK: Only run if the release was created from the maven-central branch
+    # This prevents accidental publishing from feature branches or pull requests
+    if: github.event.release.target_commitish == 'maven-central'
+
+    steps:
+      # Get the source code from the repository
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch full history for proper versioning
+
+      # Set up Java 25 with Maven Central publishing configuration
+      # This configures GPG signing and OSSRH server credentials
+      - name: "Set up JDK 25"
+        uses: actions/setup-java@v4
+        with:
+          java-version: "25"
+          distribution: "temurin"
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }} # GPG key for artifact signing
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # Environment variable for GPG passphrase
+
+      # Cache Maven dependencies to speed up builds
+      - name: "Cache Maven Dependencies"
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Configure Maven Settings
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>central</id>
+                <username>\${env.MAVEN_USERNAME}</username>
+                <password>\${env.MAVEN_PASSWORD}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+
+      # Configure Git for potential version commits
+      - name: "Configure Git User"
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+
+      # Extract version from POM and convert SNAPSHOT to release version
+      # This handles the automatic conversion from development to release version
+      - name: "Extract and Prepare Release Version"
+        id: extract_version
+        run: |
+          # Get the current version from the POM file
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          if [[ -z "$CURRENT_VERSION" ]]; then
+            echo "Error: Could not extract version from POM"
+            exit 1
+          fi
+
+          echo "Current POM version: $CURRENT_VERSION"
+
+          # Convert SNAPSHOT to release version by removing the -SNAPSHOT suffix
+          # Example: 1.0.0-SNAPSHOT becomes 1.0.0
+          if [[ "$CURRENT_VERSION" == *"-SNAPSHOT" ]]; then
+            RELEASE_VERSION=${CURRENT_VERSION%-SNAPSHOT}
+            echo "Converting SNAPSHOT version to release version"
+            echo "SNAPSHOT: $CURRENT_VERSION -> Release: $RELEASE_VERSION"
+          else
+            # If it's already a release version, use it as-is
+            RELEASE_VERSION="$CURRENT_VERSION"
+            echo "Using existing release version: $RELEASE_VERSION"
+          fi
+
+          # Export versions for use in subsequent steps
+          echo "VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "ORIGINAL_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Final release version: $RELEASE_VERSION"
+
+      # Validate the release version format
+      # Ensures the version follows semantic versioning conventions
+      - name: "Validate Release Version"
+        run: |
+          VERSION="${{ steps.extract_version.outputs.VERSION }}"
+          ORIGINAL_VERSION="${{ steps.extract_version.outputs.ORIGINAL_VERSION }}"
+
+          echo "Original version: $ORIGINAL_VERSION"
+          echo "Release version: $VERSION"
+
+          # Basic semantic version validation (X.Y.Z or X.Y.Z-suffix)
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]; then
+            echo "Warning: Version '$VERSION' doesn't follow semantic versioning format"
+            echo "Expected format: X.Y.Z or X.Y.Z-suffix"
+          fi
+
+          echo "✅ Release version validated: $VERSION"
+
+      # Update POM to use the release version
+      # This temporarily modifies the POM for the build process
+      - name: "Update POM to Release Version"
+        run: |
+          VERSION="${{ steps.extract_version.outputs.VERSION }}"
+          ORIGINAL_VERSION="${{ steps.extract_version.outputs.ORIGINAL_VERSION }}"
+
+          # Only update if the version changed (SNAPSHOT -> release)
+          if [[ "$ORIGINAL_VERSION" != "$VERSION" ]]; then
+            echo "Updating POM version from $ORIGINAL_VERSION to $VERSION"
+            mvn versions:set -DnewVersion="$VERSION" -DgenerateBackupPoms=false
+            
+            # Verify the version was set correctly
+            NEW_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+            echo "POM version updated to: $NEW_VERSION"
+            
+            if [[ "$NEW_VERSION" != "$VERSION" ]]; then
+              echo "Error: Version update failed. Expected: $VERSION, Got: $NEW_VERSION"
+              exit 1
+            fi
+          else
+            echo "POM already has release version: $VERSION"
+          fi
+
+      # Build and verify the project
+      # Ensures everything compiles and tests pass before publishing
+      - name: "Verify Build"
+        run: mvn clean verify
+
+      # Step 9: Deploy to OSSRH (Maven Central)
+      # Uses the 'maven-central' profile which includes sources, javadoc, and GPG signing
+      - name: "Deploy to OSSRH"
+        run: mvn clean deploy -P maven-central
+        env:
+          # OSSRH credentials from GitHub secrets
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          # GPG signing passphrase from GitHub secrets
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
