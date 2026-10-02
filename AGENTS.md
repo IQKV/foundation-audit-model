@@ -53,6 +53,7 @@ Add to the appropriate enum. All existing callers in `foundation-audit-spi` and 
 ### Adding a new field to `AuditEvent`
 
 `AuditEvent` is a `record` and a public API used across services. Adding a field is a **breaking change** unless:
+
 - it has a default in the compact constructor, or
 - all known callers are updated in the same PR.
 
@@ -136,10 +137,11 @@ Format: `type(scope): subject`
 - Types: `feat`, `fix`, `improvement`, `refactor`, `docs`, `test`, `chore`, `ci`, `revert`
 - Scope: affected package or type (e.g., `audit-event`, `activity-action`, `enums`, `model`)
 - For `fix`: describe the symptom and trigger, not the code change
-  - ✅ `fix(audit-event): id defaults to null when compact constructor is bypassed`
-  - ❌ `fix(audit-event): add null check for id field`
+    - ✅ `fix(audit-event): id defaults to null when compact constructor is bypassed`
+    - ❌ `fix(audit-event): add null check for id field`
 
 Examples:
+
 - `feat(activity-action): add IMPERSONATE and DELEGATE action values`
 - `fix(audit-event): details field allows null after compact constructor`
 - `refactor(audit-actor): convert to record from class`
