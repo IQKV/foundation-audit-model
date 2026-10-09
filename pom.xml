@@ -9,7 +9,7 @@
     </parent>
     <groupId>com.iqkv</groupId>
     <artifactId>foundation-audit-model</artifactId>
-    <version>0.24.0-SNAPSHOT</version>
+    <version>0.24.1-SNAPSHOT</version>
     <name>Foundation Audit Model</name>
     <description>Shared neutral data models and enums for audit logging.</description>
     <url>https://github.com/IQKV/foundation-audit-model</url>
