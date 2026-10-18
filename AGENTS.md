@@ -220,15 +220,15 @@ A task is evaluated as done only when all of the following hold:
 
 ### Required gates by change type
 
-| Change type | Required gates |
-| --- | --- |
-| Any change | `./mvnw -q compile`, then the narrowest targeted `./mvnw test -Dtest=ClassName` |
-| New or changed record or enum | Unit or ArchUnit test covering the type, then full `./mvnw verify` |
+| Change type                                 | Required gates                                                                                         |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Any change                                  | `./mvnw -q compile`, then the narrowest targeted `./mvnw test -Dtest=ClassName`                        |
+| New or changed record or enum               | Unit or ArchUnit test covering the type, then full `./mvnw verify`                                     |
 | New field on `AuditEvent` (public contract) | Check every caller in `foundation-audit-spi` and `foundation-audit-service`, then full `./mvnw verify` |
-| New enum constant | Every caller handles the new value, then full `./mvnw verify` |
-| Package move or `package-info` change | ArchUnit package-structure test, then full `./mvnw verify` |
-| Dependency or build config | Full `./mvnw verify` |
-| Javadoc or `AGENTS.md` only | No code gate — state that none applies |
+| New enum constant                           | Every caller handles the new value, then full `./mvnw verify`                                          |
+| Package move or `package-info` change       | ArchUnit package-structure test, then full `./mvnw verify`                                             |
+| Dependency or build config                  | Full `./mvnw verify`                                                                                   |
+| Javadoc or `AGENTS.md` only                 | No code gate — state that none applies                                                                 |
 
 ### Ordering
 
